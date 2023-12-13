@@ -1,23 +1,53 @@
-import React from 'react'
-import ItemDetailContainer from '../components/ItemDetailContainer/ItemDetailContainer'
-import { useEffect, useState } from "react";
-import axios from "axios";
-import {useParams} from "react-router-dom"
+import React from 'react';
+import ItemDetailContainer from '../components/ItemDetailContainer/ItemDetailContainer';
+import { useParams } from 'react-router-dom';
+import { Spinner } from 'react-bootstrap';
+import { useSimpleProduct } from '../hooks/useProducts';
+
+const CenteredContainer = ({ children }) => (
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+    }}
+  >
+    {children}
+  </div>
+);
 
 const Item = () => {
+  const { id } = useParams();
+  const { product, loading, error } = useSimpleProduct(id);
 
-    const [product, setProduct] = useState({})
-    const {id} = useParams()
+  if (loading) {
+    return (
+      <CenteredContainer>
+        <Spinner animation="border" role="status">
+          <span className="sr-only">Cargando...</span>
+        </Spinner>
+      </CenteredContainer>
+    );
+  }
 
-    useEffect(()=>{
-      axios.get(`https://dummyjson.com/products/${id}`).then(res=>{
-        setProduct(res.data)
-      }).catch(e=>console.log(e))
-    },[id])
+  if (error) {
+    return (
+      <CenteredContainer>
+        <p>Error: {error}</p>
+      </CenteredContainer>
+    );
+  }
 
-  return (
-    <ItemDetailContainer product={product}/>
-  )
-}
+  if (!product) {
+    return (
+      <CenteredContainer>
+        <p>No se encontró el producto.</p>
+      </CenteredContainer>
+    );
+  }
 
-export default Item
+  return <ItemDetailContainer product={product} />;
+};
+
+export default Item;
